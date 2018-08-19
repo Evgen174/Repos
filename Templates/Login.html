@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+<form action="/login" method="post">
+      {% module xsrf_form_html() %}
+      <div>Username: <input type="text" name="username"/></div>
+      <div>Password: <input type="password" name="password"/></div>
+      <div><input type="submit" value="Sign in"/></div>
+    </form>
+</body>
+</html>

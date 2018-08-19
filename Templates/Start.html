@@ -1,0 +1,12 @@
+<html>
+       <head>
+          <title>{{ title }}</title>
+       </head>
+       <body>
+       <form action="/" method="post">
+           {% module xsrf_form_html() %}
+           <div>{{ _("Linq") }} <input type="text" name="Link"/></div>
+           <div><input type="submit" value="Получить ссылку"/></div>
+       </form>
+      </body>
+    </html>
