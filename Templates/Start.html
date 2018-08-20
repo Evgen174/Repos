@@ -3,6 +3,7 @@
           <title>{{ title }}</title>
        </head>
        <body>
+       <a href="/MyLink">Мои ссылки</a>
        <form action="/" method="post">
            {% module xsrf_form_html() %}
            <div>{{ _("Linq") }} <input type="text" name="Link"/></div>

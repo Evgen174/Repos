@@ -5,6 +5,7 @@
     <title>Title</title>
 </head>
 <body>
+<a href="/">Создать ссылку</a>
     <table>
         <tr>
             <td><p>Дата создания</p></td>
@@ -12,17 +13,16 @@
             <td><p>Короткая ссылка</p></td>
             <td><p>Кол-во переходов по ссылке</p></td>
         </tr>
-        {% for row in cur %}
+        {% for item in items %}
         <tr>
-            <td><p>{{ row[0] }}</p></td>
-            <td><p>{{ row[1] }}</p></td>
-            <td><p>{{ row[2] }}</p></td>
-            <td><p>{{ row[3] }}</p></td>
+            <td><p>{{ item["Date"] }}</p></td>
+            <td><p>{{  item["Link"] }}</p></td>
+            <td><p>{{  item["ShortLink"] }}</p></td>
+            <td><p>{{  item["Kol"] }}</p></td>
         </tr>
 
         {% end %}
     </table>
-
 
 </body>
 </html>
