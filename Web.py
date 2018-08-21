@@ -7,6 +7,7 @@ import string
 import random
 import re
 import datetime
+import hashlib
 
 class BaseHandler(tornado.web.RequestHandler):
     def get_current_user(self):
@@ -62,9 +63,14 @@ class LoginHandler(BaseHandler):
 
 
     def post(self):
+        
+        p = self.get_argument("password")
+        hash = hashlib.md5()
+        hash.update(p.encode('utf-8'))
+        h = hash.hexdigest()
         conn = pymysql.connect(host='localhost', port=3306, user='user', passwd='1qaz@WSX', db='link_short')
         cur = conn.cursor()
-        cur.execute("SELECT name FROM users WHERE name = '" + self.get_argument("username") +"' AND password = '" + self.get_argument("password") + "'")
+        cur.execute("SELECT name FROM users WHERE name = '" + self.get_argument("username") +"' AND password = '" + h + "'")
         cur.close()
         conn.close()
 
