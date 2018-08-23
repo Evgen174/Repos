@@ -1,28 +1,28 @@
-import os
+import urllib
+import hashlib
 import tornado.ioloop
 import tornado.httpclient
 import tornado.web
-import pymysql
-import string
-import random
-import re
-import datetime
-import hashlib
+
+from python_mysql_dbconfig import getConnection
 
 class BaseHandler(tornado.web.RequestHandler):
     def get_current_user(self):
         return self.get_secure_cookie("user")
 
-class ShowMyLink(BaseHandler):
+class ShowMyLink(BaseHandler):# pylint: disable=W0223
     @tornado.web.authenticated
-
     async def get(self):
+        post_data = {'User': self.current_user}
+        body = urllib.parse.urlencode(post_data)
         http = tornado.httpclient.AsyncHTTPClient()
-        h = "http://localhost:7777/api/links/?User=" + tornado.escape.xhtml_escape(self.current_user)
-        response = await http.fetch(h)
+        response = await http.fetch("http://localhost:7777/api/links",
+                                    method='POST',
+                                    headers=None,
+                                    body=body)
         json = tornado.escape.json_decode(response.body)
         items = json['data']
-        self.render("Templates/MyLink.html", items = items)
+        self.render("Templates/MyLink.html", items=items)
 
 
 
@@ -30,15 +30,20 @@ class ShowMyLink(BaseHandler):
 class MainHandler(BaseHandler):
     @tornado.web.authenticated
     def get(self):
-
-        name = tornado.escape.xhtml_escape(self.current_user)
         self.render("Templates/Start.html", title="My title")
 
+    @tornado.web.authenticated
     async def post(self):
-
+        post_data = {
+            'User': self.current_user,
+            'Link': self.get_argument("Link")
+        }
+        body = urllib.parse.urlencode(post_data)
         http = tornado.httpclient.AsyncHTTPClient()
-        h = "http://localhost:7777/api/slink/"+tornado.escape.xhtml_escape(self.current_user)+"?Link="+self.get_argument("Link")
-        response = await http.fetch(h)
+        response = await http.fetch("http://localhost:7777/api/slink",
+                                    method='POST',
+                                    headers=None,
+                                    body=body)
         json = tornado.escape.json_decode(response.body)
         self.write("http://localhost:8888/" + json['data']['ShortLink'])
 
@@ -46,10 +51,9 @@ class MainHandler(BaseHandler):
 
 class GoLinq(BaseHandler):
     @tornado.web.authenticated
-
     async def get(self, ShortLink):
         http = tornado.httpclient.AsyncHTTPClient()
-        h = "http://localhost:7777/api/slink/?ShortLink=" + ShortLink
+        h = "http://localhost:7777/api/getlink?ShortLink=" + ShortLink
         response = await http.fetch(h)
         json = tornado.escape.json_decode(response.body)
         self.redirect(json['data']['Link'])
@@ -63,21 +67,19 @@ class LoginHandler(BaseHandler):
 
 
     def post(self):
-        
-        p = self.get_argument("password")
+        conn = getConnection()
+        password = self.get_argument("password")
         hash = hashlib.md5()
-        hash.update(p.encode('utf-8'))
-        h = hash.hexdigest()
-        conn = pymysql.connect(host='localhost', port=3306, user='user', passwd='1qaz@WSX', db='link_short')
+        hash.update(password.encode('utf-8'))
+        hash = hash.hexdigest()
         cur = conn.cursor()
-        cur.execute("SELECT name FROM users WHERE name = '" + self.get_argument("username") +"' AND password = '" + h + "'")
+        cur.execute("SELECT name FROM users WHERE name = %s AND password = %s;",
+                    (self.get_argument("username"), hash))
         cur.close()
         conn.close()
-
         if cur.rowcount != 0:
             self.set_secure_cookie("user", self.get_argument("username"))
             self.redirect("/")
-            return
         else: self.redirect("/login")
 
 
@@ -101,3 +103,4 @@ application = tornado.web.Application([
 if __name__ == "__main__":
     application.listen(8888)
     tornado.ioloop.IOLoop.instance().start().n().Loop.current().start()
+
